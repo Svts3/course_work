@@ -8,7 +8,6 @@ import { interval } from 'rxjs';
   styleUrls: ['./hero.component.css']
 })
 export class HeroComponent implements OnInit {
-
   temperatureAndHumidity: any[] = [];
   pressure: any[] = [];
   co2:any[] = [];
@@ -21,6 +20,9 @@ export class HeroComponent implements OnInit {
     this.getTemperatures();
     this.getPressure();
     this.getCO2();
+    
+    // Restore search date after refresh
+    this.searchDate = localStorage.getItem('searchDate') || '';
 
     // Fetch temperatures every 10 seconds
     interval(10000).subscribe(() => {
@@ -37,6 +39,7 @@ export class HeroComponent implements OnInit {
         this.temperatureAndHumidity.sort((a, b) => b.dateTime.localeCompare(a.dateTime));
       });
   }
+
   getPressure() {
     this.http.get('http://localhost:8080/barometer/')
       .subscribe((response: any) => {
@@ -44,6 +47,7 @@ export class HeroComponent implements OnInit {
         this.pressure.sort((a, b) => b.dateTime.localeCompare(a.dateTime));
       });
   }
+
   getCO2() {
     this.http.get('http://localhost:8080/co2/')
       .subscribe((response: any) => {
@@ -72,10 +76,9 @@ export class HeroComponent implements OnInit {
       });
       this.temperatureAndHumidity = filteredTemperatureAndHumidity;
       this.pressure = filteredPressure;
-      this.co2 = filteredCO2
+      this.co2 = filteredCO2;
     }
   }
-  
 
   sortSensors() {
     if (this.sortOrder === 'asc') {
@@ -85,7 +88,6 @@ export class HeroComponent implements OnInit {
         if (dateComparison !== 0) {
           return dateComparison;
         }
-
         // Sort by time
         return a.dateTime.split('T')[1].localeCompare(b.dateTime.split('T')[1]);
       });
@@ -107,7 +109,6 @@ export class HeroComponent implements OnInit {
         // Sort by time
         return a.dateTime.split('T')[1].localeCompare(b.dateTime.split('T')[1]);
       });
-      console.log(this.pressure);
       this.sortOrder = 'desc'; // Update the sort order to descending
     } else {
       this.temperatureAndHumidity.sort((a, b) => {
@@ -116,7 +117,6 @@ export class HeroComponent implements OnInit {
         if (dateComparison !== 0) {
           return dateComparison;
         }
-
         // Sort by time (reversed)
         return b.dateTime.split('T')[1].localeCompare(a.dateTime.split('T')[1]);
       });
@@ -126,7 +126,6 @@ export class HeroComponent implements OnInit {
         if (dateComparison !== 0) {
           return dateComparison;
         }
-
         // Sort by time (reversed)
         return b.dateTime.split('T')[1].localeCompare(a.dateTime.split('T')[1]);
       });
@@ -136,19 +135,22 @@ export class HeroComponent implements OnInit {
         if (dateComparison !== 0) {
           return dateComparison;
         }
-
         // Sort by time (reversed)
         return b.dateTime.split('T')[1].localeCompare(a.dateTime.split('T')[1]);
       });
-      console.log(this.pressure);
       this.sortOrder = 'asc'; // Update the sort order to ascending
     }
   }
 
   resetSearch() {
     this.searchDate = ''; // Clear the search date
+    localStorage.removeItem('searchDate'); // Remove search date from local storage
     this.getTemperatures();
     this.getPressure();
     this.getCO2(); // Fetch all temperatures
+  }
+
+  onSearchDateChange() {
+    localStorage.setItem('searchDate', this.searchDate); // Store search date in local storage
   }
 }
